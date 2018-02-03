@@ -1,6 +1,6 @@
 {
   "name": "@swatk6/packet",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A packet class for layer-agnostic communications.",
   "main": "index.js",
   "scripts": {

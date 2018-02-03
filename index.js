@@ -48,7 +48,7 @@ function swatk6_packet(inData) {
 	replied: false
     };
     if (typeof inData!=='undefined') {
-	this.setup(inData);
+	this.setup(inData,true);
     }
     if (this.seqid === null) {
 	this.seqid = swatk6_packet.makeSeqId(this);
@@ -63,10 +63,11 @@ function swatk6_packet(inData) {
  * - an <Object> that holds shortened keys described in swatk6_packet.paramnames and swatk6_packet.optnames.
  * 
  * @param {(String|Buffer|Object|swatk6_packet}} inData
+ * @param {Boolean} isInitial
  * @throws {Error} if deserialization or data readin yields no intelligible answer
  * @returns {undefined}
  */
-swatk6_packet.prototype.setup = function(inData) {
+swatk6_packet.prototype.setup = function(inData,isInitial) {
     if (typeof inData!=='object' || inData instanceof Buffer) {
 	inData = swatk6_packet.coderDecoder(inData,'decode');
     }
@@ -82,13 +83,21 @@ swatk6_packet.prototype.setup = function(inData) {
     else if (typeof inData[swatk6_packet.allowedPropsMain[0]]==='undefined') {
 	throw new Error('@swatk6/packet: incorrect packet setup data (missing command identifier)');
     }
-    for(var prop in Object.getOwnPropertyNames(inData)) {
+    var i,j,prop,prop2;
+    var props = Object.getOwnPropertyNames(inData);
+    for(i=0;i<props.length;i++) {
+	prop = props[i];
 	var actlprop = (ttabm!==null) ? ttabm[prop] : prop;
 	if (typeof actlprop!=='undefined' && swatk6_packet.allowedPropsMain.indexOf(actlprop)>-1) {
-	    this[actlprop] = inData[prop];
+	    if (actlprop==='payload' && isInitial===true) {
+		this[actlprop] = JSON.parse(JSON.stringify(inData[prop]));
+	    } else {
+		this[actlprop] = inData[prop];
+	    }
 	    if (actlprop==='options') {
 		if (typeof this.options[swatk6_packet.allowedKeysOpt[0]]!=='undefined') {
-		    for(var prop2 in swatk6_packet.allowedKeysOpt) {
+		    for(j=0;j<swatk6_packet.allowedKeysOpt.length;j++) {
+			prop2 = swatk6_packet.allowedKeysOpt[j];
 			if (typeof this.options[prop2]!=='undefined') {
 			    this.options[swatk6_packet.optnames[prop2]] = this.options[prop2];
 			    delete this.options[prop2];
@@ -331,9 +340,9 @@ swatk6_packet.prototype.toState = function(newstate) {
 	this._commdata.sendstate = newstate;
 	this._commdata.sendwhen = 0;
 	this._commdata.timesout = 0;
-	console.log('packet failed, retries: ' + this._commdata.retries);
+	//console.log('packet failed, retries: ' + this._commdata.retries);
 	if (this._commdata.retries > 0) {
-	    console.log('retrying');
+	    //console.log('retrying');
 	    --this._commdata.retries;
 	    this._commdata.sendwhen = nt + this._commdata.retrywait * 1000;
 	    this._commdata.sendstate = 'queue';
@@ -502,7 +511,7 @@ swatk6_packet.prototype.cloneForSend = function() {
  * STATIC DEFINITIONS
  * ----------------------------------------------------------------------------
  */
-swatk6_packet.version = 1;
+swatk6_packet.version = '1.1.1';
 /**
  * The built-in JSON-based serializer or deserializer.
  * @param {*} ind data to encode or decode
@@ -574,14 +583,14 @@ swatk6_packet.optnames = {
 };
 swatk6_packet.allowedKeysMain = Object.getOwnPropertyNames(swatk6_packet.paramnames);
 swatk6_packet.allowedPropsMain = [];
-var _n;
-for(_n in swatk6_packet.allowedKeysMain) {
-    swatk6_packet.allowedPropsMain.push(swatk6_packet.paramnames[_n]);
+var _q;
+for(_q=0;_q<swatk6_packet.allowedKeysMain.length;_q++) {
+    swatk6_packet.allowedPropsMain.push(swatk6_packet.paramnames[swatk6_packet.allowedKeysMain[_q]]);
 }
 swatk6_packet.allowedKeysOpt = Object.getOwnPropertyNames(swatk6_packet.optnames);
 swatk6_packet.allowedPropsOpt = [];
-for(_n in swatk6_packet.allowedKeysOpt) {
-    swatk6_packet.allowedPropsOpt.push(swatk6_packet.optnames[_n]);
+for(_q=0;_q<swatk6_packet.allowedKeysOpt.length;_q++) {
+    swatk6_packet.allowedPropsOpt.push(swatk6_packet.optnames[swatk6_packet.allowedKeysOpt[_q]]);
 }
 
 module.exports = swatk6_packet;

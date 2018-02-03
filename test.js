@@ -1,4 +1,10 @@
 var responses = [];
+function syncBlock(msecs) {
+    var st = new Date().getTime(), et = null;
+    do {
+	et = new Date().getTime();
+    } while((et-msecs)<=st);
+}
 function addResponse(resp) {
     responses.push(resp);
 }
@@ -28,13 +34,40 @@ function matchResponses(expected) {
 
 try {
     const packet = require('./index.js');
-    var testpacket = new packet();
-    
+    var dump = {
+	'CO':'test',
+	'OR':'testsystem',
+	'PL':{'one':1,'two':true},
+	'OP':{
+	    'RR':true,
+	    'BU':true,
+	    'TY':'RQ'
+	}
+    };
+    var dumpjs = JSON.stringify(dump);
+    var testpacket = new packet(dump);
+    addResponse(testpacket.payload.two);
+    testpacket.reply({'one':2,'two':null});
+    addResponse(testpacket.payload.one);
+    addResponse(testpacket.options.type);
+    testpacket = new packet(dumpjs);
+    addResponse(testpacket.command);
+    addResponse(testpacket.payload.two);
+    addResponse(testpacket.shouldBlockUI());
+    testpacket._commdata['timeout'] = 2;
+    testpacket.toState('sending');
+    addResponse(testpacket.shouldBlockUI());
+    syncBlock(1500);
+    addResponse(testpacket.isTimedOut());
+    syncBlock(1500);
+    addResponse(testpacket.isTimedOut());
+    testpacket.toState('failed');
+    addResponse(testpacket.isActive());
+    testpacket.ack();
+    addResponse(testpacket.command);
 }
 catch(e) {
     addResponse(e);
 }
 
-/* TODO */
-
-matchResponses([]);
+matchResponses([true,2,'RP','test',true,false,true,false,true,false,'ACK']);
