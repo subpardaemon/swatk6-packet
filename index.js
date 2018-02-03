@@ -83,27 +83,28 @@ swatk6_packet.prototype.setup = function(inData,isInitial) {
     else if (typeof inData[swatk6_packet.allowedPropsMain[0]]==='undefined') {
 	throw new Error('@swatk6/packet: incorrect packet setup data (missing command identifier)');
     }
-    var i,j,prop,prop2;
+    var i,j,prop,prop2,optprops;
     var props = Object.getOwnPropertyNames(inData);
     for(i=0;i<props.length;i++) {
 	prop = props[i];
 	var actlprop = (ttabm!==null) ? ttabm[prop] : prop;
 	if (typeof actlprop!=='undefined' && swatk6_packet.allowedPropsMain.indexOf(actlprop)>-1) {
-	    if (actlprop==='payload' && isInitial===true) {
-		this[actlprop] = JSON.parse(JSON.stringify(inData[prop]));
-	    } else {
-		this[actlprop] = inData[prop];
-	    }
 	    if (actlprop==='options') {
-		if (typeof this.options[swatk6_packet.allowedKeysOpt[0]]!=='undefined') {
-		    for(j=0;j<swatk6_packet.allowedKeysOpt.length;j++) {
-			prop2 = swatk6_packet.allowedKeysOpt[j];
-			if (typeof this.options[prop2]!=='undefined') {
-			    this.options[swatk6_packet.optnames[prop2]] = this.options[prop2];
-			    delete this.options[prop2];
-			}
+		optprops = Object.getOwnPropertyNames(inData[prop]);
+		for(j=0;j<optprops.length;j++) {
+		    if (swatk6_packet.allowedKeysOpt.indexOf(optprops[j])>-1) {
+			this.options[ttabo[optprops[j]]] = inData[prop][optprops[j]];
+		    }
+		    else if (swatk6_packet.allowedPropsOpt.indexOf(optprops[j])>-1) {
+			this.options[optprops[j]] = inData[prop][optprops[j]];
 		    }
 		}
+	    }
+	    else if (actlprop==='payload' && isInitial===true) {
+		this[actlprop] = JSON.parse(JSON.stringify(inData[prop]));
+	    }
+	    else {
+		this[actlprop] = inData[prop];
 	    }
 	} else {
 	    actlprop = (ttabo!==null) ? ttabo[prop] : prop;
