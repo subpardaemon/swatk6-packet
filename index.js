@@ -1,5 +1,9 @@
 /**
- * TODO
+ * swatk6/packet
+ * @version v1.1.1
+ * @author Andras Kemeny
+ * 
+ * A packet class for layer-agnostic communications.
  * 
  * LICENSE: MIT
  * (c) Andras Kemeny, subpardaemon@gmail.com
@@ -28,6 +32,7 @@ function swatk6_packet(inData) {
     };
     this.sessionid = null;
     this.seqid = null;
+    this.seqserial = 0;
     this.states = [];
     this._commdata = {
 	sendstate: 'queue',
@@ -571,6 +576,7 @@ swatk6_packet.paramnames = {
     OP: 'options',
     SI: 'sessionid',
     SQ: 'seqid',
+    SS: 'seqserial',
     ST: 'status'
 };
 swatk6_packet.optnames = {
