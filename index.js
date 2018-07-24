@@ -348,6 +348,7 @@ swatk6_packet.prototype.toState = function(newstate) {
 	this._commdata.timesout = 0;
 	//console.log('packet failed, retries: ' + this._commdata.retries);
 	if (this._commdata.retries > 0) {
+	    ++this.seqserial;
 	    //console.log('retrying');
 	    --this._commdata.retries;
 	    this._commdata.sendwhen = nt + this._commdata.retrywait * 1000;
